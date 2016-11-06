@@ -1,3 +1,59 @@
+
+<!-- toc orderedList:0 depthFrom:1 depthTo:6 -->
+
+- [Index](#index)
+- [ViewAnimation](#viewanimation)
+	- [DrawableAnimation](#drawableanimation)
+		- [XML 方式](#xml-方式)
+		- [JAVA 方式](#java-方式)
+		- [小结](#小结)
+	- [TranslateAnimation](#translateanimation)
+		- [XML 方式](#xml-方式-1)
+		- [JAVA 方式](#java-方式-1)
+		- [小结](#小结-1)
+	- [RotateAnimation](#rotateanimation)
+		- [XML 方式](#xml-方式-2)
+		- [JAVA 方式](#java-方式-2)
+		- [小结](#小结-2)
+	- [AlphaAnimation](#alphaanimation)
+		- [XML 方式](#xml-方式-3)
+		- [JAVA 方式](#java-方式-3)
+		- [小结](#小结-3)
+	- [ScaleAnimation](#scaleanimation)
+		- [JAVA 方式](#java-方式-4)
+		- [小结](#小结-4)
+	- [AnimationSet](#animationset)
+		- [XML 方式](#xml-方式-4)
+		- [坑1：在`AnimationSet`中设置`repeatCount`属性不会有任何的作用](#坑1在animationset中设置repeatcount属性不会有任何的作用)
+		- [坑2：`TranslateAnimation`对于`pivotXxx`属性的影响](#坑2translateanimation对于pivotxxx属性的影响)
+	- [ViewAnimation 设计框架](#viewanimation-设计框架)
+- [PropertyAnimator](#propertyanimator)
+	- [Why PropertyAnimator](#why-propertyanimator)
+	- [ObjectAnimator](#objectanimator)
+		- [入门使用](#入门使用)
+		- [使用方式探究](#使用方式探究)
+		- [PropertyValuesHolder](#propertyvaluesholder)
+	- [ValueAnimator](#valueanimator)
+	- [Interpolator & TypeEvaluator](#interpolator-typeevaluator)
+		- [Interpolator](#interpolator)
+		- [TypeEvaluator](#typeevaluator)
+		- [Interpolator provide by Android](#interpolator-provide-by-android)
+		- [小结](#小结-5)
+	- [Deal with all properties by PropertyAnimator](#deal-with-all-properties-by-propertyanimator)
+		- [方法一：使用ValueAnimator](#方法一使用valueanimator)
+		- [方法二：继承后添加`getter/setter`](#方法二继承后添加gettersetter)
+		- [方法三：使用包装器](#方法三使用包装器)
+	- [LayoutTransition](#layouttransition)
+	- [Framework](#framework)
+		- [Animator](#animator)
+		- [AnimatorSet](#animatorset)
+- [ViewPropertyAnimator](#viewpropertyanimator)
+	- [KeyWords](#keywords)
+	- [Design Purpose](#design-purpose)
+	- [Usage](#usage)
+
+<!-- tocstop -->
+
 # Index
 
 1. ViewAnimation
@@ -242,7 +298,15 @@ mActorView.startAnimation(animation);
 
 - `fromXxxDelta\toXxxDelta`属性设置位移动画的起始位置和终点位置和View本身起始坐标的偏移量，使用的属性值有三种不同的类型；如果是采用整数的属性值，如`toXDelta="10"`表示终点位置在父容器坐标系X轴10像素的位置；如果采用百分数的属性值，如`toXDelta="10%"`表示的是终点位置的X轴坐标再当前View宽度10%的地方；如果采用100%p的方式，如`toXDelta="10%p"`表示终点位置的X坐标是当前View父容器宽度10%的地方。
 
-- `duration`属性设置整个动画执行的过程持续的时间长度；`interpolator`属性设置动画进行过程中中运动状态的改变，直观一点的说法就是运动速度的变化，上面的示例代码中使用的`linear_interpolator`就是表示在整个动画的过程中运行速度都是线性不变的，Android本身提供了很多预定的`Interpolator`，同时也提供自定义的途径，这部分内容在专门介绍`Interpolator`的时候会提及到；`repeatMode`属性设置动画的重复方式，有两种不同的类型可以选择，如果使用`repeatMode = "restart"`每次重复动画的时候都是直接从动画的起始位置再次启动进行重复，而使用`repeatMode = "reverse"`会在重复动画的时候在播放结束的位置方向播放上一次播放的动画；`repeatCount`属性设置动画的重复次数，任意正整数的值都表示对应的重复次数，如果使用-1则表示动画将会无限地重复播放；`fillAfter`属性表示在动画结束的时候View将会保持结束时候的状态停留在该位置上，但是这里停留的只是View的影像，所以对该影像进行任何的触摸交互都是无法触发对应的事件的。上面介绍的这些属性都是ViewAnimation中的公共属性，在后面涉及的时候将不会重复提及而直接参考这里就可以了。
+- `duration`属性设置整个动画执行的过程持续的时间长度
+
+- `interpolator`属性设置动画进行过程中中运动状态的改变，直观一点的说法就是运动速度的变化，上面的示例代码中使用的`linear_interpolator`就是表示在整个动画的过程中运行速度都是线性不变的，Android本身提供了很多预定的`Interpolator`，同时也提供自定义的途径，这部分内容在专门介绍`Interpolator`的时候会提及到
+
+- `repeatMode`属性设置动画的重复方式，有两种不同的类型可以选择，如果使用`repeatMode = "restart"`每次重复动画的时候都是直接从动画的起始位置再次启动进行重复，而使用`repeatMode = "reverse"`会在重复动画的时候在播放结束的位置方向播放上一次播放的动画
+
+- `repeatCount`属性设置动画的重复次数，任意正整数的值都表示对应的重复次数，如果使用-1则表示动画将会无限地重复播放
+
+- `fillAfter`属性表示在动画结束的时候View将会保持结束时候的状态停留在该位置上，但是这里停留的只是View的影像，所以对该影像进行任何的触摸交互都是无法触发对应的事件的。上面介绍的这些属性都是ViewAnimation中的公共属性，在后面涉及的时候将不会重复提及而直接参考这里就可以了。
 
 ### JAVA 方式
 
@@ -547,7 +611,7 @@ mActorView.startAnimation(animation);
 
 ### 坑1：在`AnimationSet`中设置`repeatCount`属性不会有任何的作用
 
-在使用这个对象的时候会自然而然的任何应该所有的公共属性都可以在这里进行统一设置，但是`repeatCount`却成功地成为了特例。在这个对象中如果需要设置动画的重复执行次数，需要单独地对集合中的每一个自动化进行设置才会有效果。原因是`AnimationSet`从`Animation`继承过来的时候并没去重写其中的`setRepeatCount`函数而仅仅只是重写了`setRepeatMode()`将`repeatMode`属性设置到集合中的每一个动画，这样即使调用了`setRepeatCount`也没有什么作用，因为`AnimationSet`执行动画的实质是集合中的所有动画在每次UI刷新的时候顺序执行叠加在一起形成的视觉效果，而这里集合中的动画并没有机会设置`repeatCount`属性。
+在使用这个对象的时候会自然而然的任何应该所有的公共属性都可以在这里进行统一设置，但是`repeatCount`却成功地成为了特例。在这个对象中如果需要设置动画的重复执行次数，需要单独地对集合中的每一个动画进行设置才会有效果。原因是`AnimationSet`从`Animation`继承过来的时候并没去重写其中的`setRepeatCount`函数而仅仅只是重写了`setRepeatMode()`将`repeatMode`属性设置到集合中的每一个动画，所以即使调用了`setRepeatCount`也没有什么作用，因为`AnimationSet`执行动画的实质是集合中的所有动画在每次UI刷新的时候顺序执行叠加在一起形成的视觉效果，而这里集合中的动画并没有机会设置`repeatCount`属性。
 
 ### 坑2：`TranslateAnimation`对于`pivotXxx`属性的影响
 
@@ -563,7 +627,7 @@ mActorView.startAnimation(animation);
 
 从类图中可以看到之前介绍的四种补间动画都直接继承于Animation类。而这个类本身只是一个对补间动画的抽象类，在其中提供一系列公共的属性却没有实现具体的动画效果，这些都需要后续的动画子类继承并实现applyTransformation()函数来实现对应的动画效果。
 
-在这个包里面还有另外一个比较总要的类AnimationUtils，在上面的介绍各种动画的示例代码中可以看到经常出现的一种使用方式是AnimationUtils.loadAnimation(Context, animation_res)加载动画资源并生成对应的动画对象。查看AnimationUtils对象的源码会发现里面有一系列的这种类型的函数，作用都是加载并解析XML动画资源生成对应的动画对象，而这也是这个类存在的主要意义。
+在这个包里面还有另外一个比较重要的类AnimationUtils，在上面的介绍各种动画的示例代码中可以看到经常出现的一种使用方式是AnimationUtils.loadAnimation(Context, animation_res)加载动画资源并生成对应的动画对象。查看AnimationUtils对象的源码会发现里面有一系列的这种类型的函数，作用都是加载并解析XML动画资源生成对应的动画对象，而这也是这个类存在的主要意义。
 
 # PropertyAnimator
 
