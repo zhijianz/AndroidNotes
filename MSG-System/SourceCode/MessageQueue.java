@@ -74,8 +74,9 @@ public final class MessageQueue {
     /**
      * @author zhijianz
      *
-     * 这一块内容应该是用来进行等待阻塞相关内容操作的
-     * 具体怎么用暂时还不知道
+     * 这个类型的handler会在当前线程空闲的时候去执行，也就是在next函数没有
+     * 找到下一个可执行消息的时候会去从IdelHandler的一个队列中不断执行可用
+     * 的IdelHandler
      */
     /**
      * Callback interface for discovering when a thread is going to block
@@ -192,6 +193,13 @@ public final class MessageQueue {
                      * 这里有关于barrier和asynchronous的说法，按照代码的字面理解，如果当前队列中
                      * 保存的消息列表头部的消息没有带target就会进入这个延时的处理过程中，直到找到
                      * 队列中下一个被标记为asynchronous的消息
+                     *
+                     * 关于barrier，在队列中添加了BarrierMessage之后，所有执行时间在这个消息之后
+                     * 正常消息都没有办法得到执行，除非调用相应的接口把这个barrier移除，但是这个
+                     * 阻塞的过程对于Asynchronous的消息不会造成影响
+                     *
+                     * 消息队列中消息的等级
+                     * Asynchronous > Barrier > Normal
                      */
                     do {
                         prevMsg = msg;
@@ -256,9 +264,9 @@ public final class MessageQueue {
 
                 /**
                  * @author zhijianz
-                 *
-                 * 从这里开始执行消息队列的等待操作，这是一个依赖于IdleHandler的过程，
-                 * 现在看的不明所以，后面再过一遍
+                 * 
+                 * IdleHandler会在当前线程空闲的时候执行，如果希望进行一些并不需要
+                 * 在固定时刻执行的任务
                  */
 
                 // If first time idle, then get the number of idlers to run.

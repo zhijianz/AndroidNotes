@@ -62,6 +62,11 @@ import java.lang.reflect.Modifier;
  * in the Handler's message queue and processed when appropriate.
  */
 public class Handler {
+    /**
+     * @author zhijianz
+     *
+     * 官方直接在注释里面说明这个地方可能会造成内存的泄漏
+     */
     /*
      * Set this flag to true to detect anonymous, local or member classes
      * that extend this Handler class and that are not static. These kind
@@ -70,6 +75,11 @@ public class Handler {
     private static final boolean FIND_POTENTIAL_LEAKS = false;
     private static final String TAG = "Handler";
 
+    /**
+     * @author zhijianz
+     *
+     * 可以通过实现这个接口避免创建一个handler子类的同时达到处理消息的目的
+     */
     /**
      * Callback interface you can use when instantiating a Handler to avoid
      * having to implement your own subclass of Handler.
@@ -168,6 +178,13 @@ public class Handler {
         this(null, async);
     }
 
+    /**
+     * @author zhijianz
+     *
+     * 这里有几个参数需要注意一下
+     * mCallback由自己实现，避免再次去实现一个handler子类，但是需要考虑存在内存泄漏的可能性
+     * async发送的都否都是异步消息，关于异步消息的讨论参见MessageQueue.next
+     */
     /**
      * Use the {@link Looper} for the current thread with the specified callback interface
      * and set whether the handler should be asynchronous.
@@ -623,6 +640,12 @@ public class Handler {
         return enqueueMessage(queue, msg, 0);
     }
 
+    /**
+     * @author zhijianz
+     *
+     * 不管是message还是runnable，最后都会执行到这里来
+     * 如果是异步的消息，在这个地方会设置上来
+     */
     private boolean enqueueMessage(MessageQueue queue, Message msg, long uptimeMillis) {
         msg.target = this;
         if (mAsynchronous) {
@@ -722,6 +745,12 @@ public class Handler {
         }
     }
 
+    /**
+     * @author zhijianz
+     *
+     * 我们平时自己用的就是runnable最后还是变成了message
+     * 不过用的是mesage.callback
+     */
     private static Message getPostMessage(Runnable r) {
         Message m = Message.obtain();
         m.callback = r;
@@ -796,3 +825,4 @@ public class Handler {
         }
     }
 }
+    

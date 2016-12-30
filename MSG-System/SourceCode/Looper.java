@@ -71,6 +71,12 @@ public final class Looper {
         prepare(true);
     }
 
+    /**
+     * @author zhijianz
+     *
+     * prepare的执行目的是为了使用ThreadLocal将looper注册到
+     * 当前的线程中
+     */
     private static void prepare(boolean quitAllowed) {
         if (sThreadLocal.get() != null) {
             throw new RuntimeException("Only one Looper may be created per thread");
@@ -103,6 +109,12 @@ public final class Looper {
     }
 
     /**
+     * @author zhijianz
+     *
+     * loop的职责是不断从消息队列中产生可用的消息到线程中
+     * 依赖于MessageQueue的实现
+     */
+    /**
      * Run the message queue in this thread. Be sure to call
      * {@link #quit()} to end the loop.
      */
@@ -119,6 +131,7 @@ public final class Looper {
         final long ident = Binder.clearCallingIdentity();
 
         for (;;) {
+            // zhijianz 让消息队列去取出消息，可能会因为某种原因阻塞
             Message msg = queue.next(); // might block
             if (msg == null) {
                 // No message indicates that the message queue is quitting.
@@ -132,6 +145,14 @@ public final class Looper {
                         msg.callback + ": " + msg.what);
             }
 
+            /**
+             * @author zhijianz
+             *
+             * 让handler去处理这个消息，根据消息携带信息的不同，
+             * 在这个函数中针对消息的处理方式也不一样，如果考虑
+             * 在这个处理中放置一些耗时的操作是否会对整个消息队列
+             * 的循环造成阻塞的危险
+             */
             msg.target.dispatchMessage(msg);
 
             if (logging != null) {
@@ -148,7 +169,7 @@ public final class Looper {
                         + msg.target.getClass().getName() + " "
                         + msg.callback + " what=" + msg.what);
             }
-
+            // zhijianz 消息执行完之后回收到缓存池中
             msg.recycleUnchecked();
         }
     }

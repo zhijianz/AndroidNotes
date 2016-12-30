@@ -82,16 +82,23 @@ if (params instanceof WindowManager.LayoutParams){
 ```{viz}
 digraph key_component{
   center=true;
-
   node[shape=box, style=dashed, color=red];
   edge[penwidth=.6, color=slategrey]
   wm[label="WindowManager"];
   wmi[label="WindowManagerImpl"];
   wmg[label="WindowManagerGlobal"];
   node[shape=cds];
-  root[label="ViewRootImpl"];
-  view[label="View"];
-  params[label="WindowManager.LayoutParams"];
+  subgraph cluster_list{
+    label="list for view attached to window"
+    shape=box;
+    style=dashed;
+    color=slategrey;
+    fontColor=purple;
+    node[shape=box, style=dashed, color=red];
+    root[label="ViewRootImpl"];
+    view[label="View"];
+    params[label="WindowManager.LayoutParams"];
+  }
 
   rankdir=LR;
   wm->wmi->wmg;
@@ -234,3 +241,40 @@ public LayoutParams(int w, int h, int _type, int _flags, int _format) {
 2. 为`LayoutParams/FEATURE`提供对应的接口管理窗口内容显示的外观和行为
 
 3. 提供callback为包含window的视图分发响应的事件回调。
+
+# Window 体系结构
+
+```{viz}
+digraph windw {
+    graph[compound = true, fontcolor = purple, style = dashed, penwidth = .6
+    , color = slategrey, rankdir = "TB"]
+    node[shape = plaintext]
+    edge[penwidth = .5, color = slategrey]
+
+    subgraph cluster_manager {
+      label = "encapsulate window system logic"
+      fontsize = 22
+      color = slategrey
+
+      WindowManager -> WindowManagerImpl -> WindowManagerGlobal
+      {randir = LR; rank = same; WindowManager, WindowManagerImpl}
+
+      subgraph cluster_list {
+        label = "list content represent window abstaction"
+        fontsize = 14
+
+        View
+        params[label = "WindowManager.LayoutParams"]
+        ViewRootImpl
+      }
+    }  
+
+    subgraph phonewindow {
+      label = "internal logic for PhoneWindow"
+      rank = same
+      PhoneWindow -> {mDecorView, mContentParent, mContentRoot}
+    }
+    WindowManagerGlobal -> params[lhead = cluster_list, minlen = 2]
+
+}
+```
