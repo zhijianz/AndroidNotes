@@ -247,9 +247,10 @@ public LayoutParams(int w, int h, int _type, int _flags, int _format) {
 ```{viz}
 digraph windw {
     graph[compound = true, fontcolor = purple, style = dashed, penwidth = .6
-    , color = slategrey, rankdir = "TB"]
+    , color = slategrey]
     node[shape = plaintext]
     edge[penwidth = .5, color = slategrey]
+    rankdir = TB
 
     subgraph cluster_manager {
       label = "encapsulate window system logic"
@@ -267,14 +268,22 @@ digraph windw {
         params[label = "WindowManager.LayoutParams"]
         ViewRootImpl
       }
-    }  
+    }
 
-    subgraph phonewindow {
+    subgraph cluster_phonewindow {
       label = "internal logic for PhoneWindow"
-      rank = same
       PhoneWindow -> {mDecorView, mContentParent, mContentRoot}
     }
-    WindowManagerGlobal -> params[lhead = cluster_list, minlen = 2]
 
+    subgraph cluster_dialog {
+      label = "dialog logic"
+      Dialog -> {"Callback & Lifecycle", ContentView, Outlook}
+    }
+
+    WindowManagerGlobal -> params[lhead = cluster_list, minlen = 2]
+    params -> PhoneWindow[dir = back]
+    Dialog -> PhoneWindow
 }
 ```
+
+关于上图中描述的window体系结构（图画的真心是丑），在这个依赖调用体系中，最后的箭头都是指向了`WindowManager`所在的内部之际逻辑。在`PhoneWindow`这一层通常的使用场景都是出现在`Activity`这种有视图元素的组件当中，而在这一层实际上执行的操作只是对`WindowManager`中涉及的关键属性提供开放调用的接口以及一些关键的回调，窗口的逻辑本质上还是原来的那一套。`Dialog`这一层应该是平时开发最常接触到的一层，而内部的实现逻辑则是在`PhoneWindow`原有的基础上增加了一些对应生命周期的接口。
