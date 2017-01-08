@@ -59,6 +59,7 @@ final class RealCall implements Call {
     }
     captureCallStackTrace();
     try {
+      // 把RealCall添加到有个同步队列里面/
       client.dispatcher().executed(this);
       Response result = getResponseWithInterceptorChain();
       if (result == null) throw new IOException("Canceled");
@@ -73,6 +74,7 @@ final class RealCall implements Call {
     retryAndFollowUpInterceptor.setCallStackTrace(callStackTrace);
   }
 
+  // zhijianz 猜测为异步请求
   @Override public void enqueue(Callback responseCallback) {
     synchronized (this) {
       if (executed) throw new IllegalStateException("Already Executed");
@@ -169,6 +171,7 @@ final class RealCall implements Call {
     interceptors.add(new BridgeInterceptor(client.cookieJar()));
     interceptors.add(new CacheInterceptor(client.internalCache()));
     interceptors.add(new ConnectInterceptor(client));
+    // zhijianz 这块有点疑问，websocket会有什么不同
     if (!forWebSocket) {
       interceptors.addAll(client.networkInterceptors());
     }

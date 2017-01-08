@@ -67,6 +67,12 @@ public final class RealInterceptorChain implements Interceptor.Chain {
     return proceed(request, streamAllocation, httpCodec, connection);
   }
 
+  /**
+   * @author zhijianz
+   *
+   * @param httpCodec [description]使用Okio对Socket数据进行读写，对于不同的http版本有不同的实现
+   * @param streamAllocation 按照类注解的描述，这个类用来平衡connection/stream/call三者之间的关系
+   */
   public Response proceed(Request request, StreamAllocation streamAllocation, HttpCodec httpCodec,
       Connection connection) throws IOException {
     if (index >= interceptors.size()) throw new AssertionError();

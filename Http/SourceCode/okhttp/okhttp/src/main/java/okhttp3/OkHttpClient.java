@@ -176,6 +176,13 @@ public class OkHttpClient implements Cloneable, Call.Factory, WebSocket.Factory 
     };
   }
 
+  /**
+   * @author zhijianz
+   *
+   * 基本上整个OkHttpClient都是在维护这个类的这些属性
+   * 但是这些属性在这个类或者是在整个okhttp中起到的作用
+   * 后面再慢慢去挖掘
+   */
   final Dispatcher dispatcher;
   final Proxy proxy;
   final List<Protocol> protocols;
