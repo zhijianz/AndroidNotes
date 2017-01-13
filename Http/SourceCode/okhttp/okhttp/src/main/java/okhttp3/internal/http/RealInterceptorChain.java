@@ -29,11 +29,11 @@ import okhttp3.internal.connection.StreamAllocation;
  * interceptors, the OkHttp core, all network interceptors, and finally the network caller.
  */
 public final class RealInterceptorChain implements Interceptor.Chain {
-  private final List<Interceptor> interceptors;
+  private final List<Interceptor> interceptors;   // 保存了整条责任链
   private final StreamAllocation streamAllocation;
   private final HttpCodec httpCodec;
   private final Connection connection;
-  private final int index;
+  private final int index;    // 当前处于责任链的哪个位置
   private final Request request;
   private int calls;
 
@@ -91,6 +91,14 @@ public final class RealInterceptorChain implements Interceptor.Chain {
           + " must call proceed() exactly once");
     }
 
+    /**
+     * @author zhijianz
+     *
+     * 下面的代码是将整个责任链连接起来的逻辑，按照我的理解，这里的模式应该是采用了
+     * 责任链模式和策略模式的混合体，Chain接口定义了整个责任链模式的框架，具体在某个
+     * 执行者上的处理逻辑由对应的Interceptor处理，在传入责任链的下一个对象给这个处理
+     * 的接口
+     */
     // Call the next interceptor in the chain.
     RealInterceptorChain next = new RealInterceptorChain(
         interceptors, streamAllocation, httpCodec, connection, index + 1, request);
